@@ -57,19 +57,23 @@ const App = () => {
 
       // Polling function with retries
       let retryCount = 0;
-      const maxRetries = 5;
+      const maxRetries = 8; // Increased retries for slow Render wakeups
 
       const pollStatus = async () => {
         try {
           const statusRes = await axios.get(`https://web-monitor-eqkb.onrender.com/api/status/${jobId}`);
           const { status, data: reportData, error } = statusRes.data;
+          
+          console.log(`📡 [POLL] Status: ${status} (Job ID: ${jobId})`);
 
           if (status === 'complete') {
+            console.log('✨ [SUCCESS] Report received!', reportData);
             setReport(reportData);
             if (user) fetchHistory();
             setView('home');
             setLoading(false);
           } else if (status === 'error') {
+            console.error('🚫 [ERROR] Job returned error state:', error);
             throw new Error(error || 'Analysis failed');
           } else {
             // Reset retry count on successful response
@@ -77,13 +81,13 @@ const App = () => {
             setTimeout(pollStatus, 3000);
           }
         } catch (pollErr) {
-          // If it's a network error, retry a few times
-          if (retryCount < maxRetries && (!pollErr.response || pollErr.response.status >= 500)) {
+          // If it's a network error (like CORS blip during restart), retry
+          if (retryCount < maxRetries) {
             retryCount++;
-            console.warn(`Polling attempt ${retryCount} failed, retrying...`, pollErr.message);
-            setTimeout(pollStatus, 4000); // Wait a bit longer before retry
+            console.warn(`⚠️ [RETRY] Attempt ${retryCount}/${maxRetries} failed (Network/CORS blip). Retrying in 5s...`);
+            setTimeout(pollStatus, 5000); 
           } else {
-            console.error('Polling failed after retries', pollErr);
+            console.error('🚨 [FATAL] Polling failed definitively:', pollErr);
             const errorMsg = pollErr.response?.data?.error || pollErr.message || 'Analysis failed. Please try again.';
             alert(`Analysis failed: ${errorMsg}`);
             setLoading(false);
