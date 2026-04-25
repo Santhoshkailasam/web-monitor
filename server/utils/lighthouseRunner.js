@@ -1,20 +1,23 @@
 import lighthouse from 'lighthouse';
-import * as chromeLauncher from 'chrome-launcher';
 import axios from 'axios';
+import puppeteer from 'puppeteer';
 
 export const runLighthouse = async (url, device = 'desktop') => {
   console.log(`🚀 Starting Lighthouse (${device}) for: ${url}`);
 
-  const chrome = await chromeLauncher.launch({
-    chromeFlags: ['--headless', '--no-sandbox', '--disable-gpu'],
-  });
-
+  let browser;
   try {
+    browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+      headless: true,
+    });
+    process.env.CHROME_PATH = browser.executablePath();
+    const port = parseInt(new URL(browser.wsEndpoint()).port);
     const options = {
       logLevel: 'info',
       output: 'json',
       onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-      port: chrome.port,
+      port: port,
       formFactor: device === 'mobile' ? 'mobile' : 'desktop',
       screenEmulation: device === 'mobile' ? {
         mobile: true,
@@ -82,8 +85,10 @@ export const runLighthouse = async (url, device = 'desktop') => {
     console.error('❌ Lighthouse error:', error);
     throw error;
   } finally {
-    await chrome.kill();
-    console.log(`🛑 Chrome closed for: ${url}`);
+    if (browser) {
+      await browser.close();
+      console.log(`🛑 Browser closed for: ${url}`);
+    }
   }
 };
 
