@@ -46,19 +46,46 @@ const App = () => {
     setReport(null);
     setCompareReport(null);
     try {
-      const response = await axios.post('https://web-monitor-eqkb.onrender.com/api/analyze', { 
+      const { data } = await axios.post('https://web-monitor-eqkb.onrender.com/api/analyze', { 
         url, 
         device,
         userId: user?.uid 
-      }, { timeout: 900000 });
-      setReport(response.data);
-      if (user) fetchHistory();
-      setView('home');
+      });
+
+      const jobId = data.jobId;
+      console.log(`Polling status for job: ${jobId}`);
+
+      // Polling function
+      const pollStatus = async () => {
+        try {
+          const statusRes = await axios.get(`https://web-monitor-eqkb.onrender.com/api/status/${jobId}`);
+          const { status, data: reportData, error } = statusRes.data;
+
+          if (status === 'complete') {
+            setReport(reportData);
+            if (user) fetchHistory();
+            setView('home');
+            setLoading(false);
+          } else if (status === 'error') {
+            throw new Error(error || 'Analysis failed');
+          } else {
+            // Still loading, poll again in 3 seconds
+            setTimeout(pollStatus, 3000);
+          }
+        } catch (pollErr) {
+          console.error('Polling failed', pollErr);
+          const errorMsg = pollErr.response?.data?.error || pollErr.message || 'Analysis failed. Please try again.';
+          alert(`Analysis failed: ${errorMsg}`);
+          setLoading(false);
+        }
+      };
+
+      pollStatus();
+
     } catch (err) {
-      console.error('Analysis failed', err);
+      console.error('Initial request failed', err);
       const errorMsg = err.response?.data?.error || err.message || 'Analysis failed. Please try again.';
       alert(`Analysis failed: ${errorMsg}`);
-    } finally {
       setLoading(false);
     }
   };

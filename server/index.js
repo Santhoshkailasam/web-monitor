@@ -36,29 +36,56 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.model('Report', reportSchema);
 
+// In-memory job store
+const jobs = new Map();
+
 // Routes
 app.post('/api/analyze', async (req, res) => {
-  const { url, device } = req.body;
+  const { url, device, userId } = req.body;
   
   if (!url) {
     return res.status(400).json({ error: 'URL is required' });
   }
 
-  try {
-    console.log(`Analyzing: ${url} on ${device || 'desktop'}`);
-    const result = await runLighthouse(url, device || 'desktop');
-    
-    // Save to DB
-    const report = new Report({ 
-      ...result,
-      createdAt: new Date()
-    });
-    await report.save();
+  const jobId = Date.now().toString();
+  jobs.set(jobId, { status: 'loading', data: null, error: null });
 
-    res.json(result);
-  } catch (error) {
-    console.error('Analysis failed:', error);
-    res.status(500).json({ error: 'Failed to analyze website', details: error.message });
+  // Start analysis in background
+  (async () => {
+    try {
+      console.log(`🚀 Starting Background Analysis [${jobId}]: ${url}`);
+      const result = await runLighthouse(url, device || 'desktop');
+      
+      const reportData = { ...result, userId, createdAt: new Date() };
+      const report = new Report(reportData);
+      const savedReport = await report.save();
+
+      jobs.set(jobId, { status: 'complete', data: savedReport, error: null });
+      console.log(`✅ Background Analysis Complete [${jobId}]`);
+    } catch (error) {
+      console.error(`❌ Background Analysis Failed [${jobId}]:`, error);
+      jobs.set(jobId, { status: 'error', data: null, error: error.message });
+    }
+  })();
+
+  // Return JOB ID immediately
+  res.json({ jobId });
+});
+
+app.get('/api/status/:jobId', (req, res) => {
+  const { jobId } = req.params;
+  const job = jobs.get(jobId);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+
+  res.json(job);
+
+  // Clean up if complete or error
+  if (job.status === 'complete' || job.status === 'error') {
+    // Keep it for a bit so frontend can read it, then delete
+    setTimeout(() => jobs.delete(jobId), 60000); 
   }
 });
 
