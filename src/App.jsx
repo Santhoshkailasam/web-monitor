@@ -50,7 +50,7 @@ const App = () => {
         url, 
         device,
         userId: user?.uid 
-      });
+      }, { timeout: 120000 });
       setReport(response.data);
       if (user) fetchHistory();
       setView('home');
