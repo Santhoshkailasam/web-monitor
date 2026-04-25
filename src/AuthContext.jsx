@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './firebase';
+import { 
+  auth, 
+  googleProvider, 
+  signInWithPopup, 
+  signOut, 
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from './firebase';
 
 const AuthContext = createContext();
 
@@ -19,6 +27,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+  const registerWithEmail = (email, password) => createUserWithEmailAndPassword(auth, email, password);
+  const loginWithEmail = (email, password) => signInWithEmailAndPassword(auth, email, password);
   const logout = () => signOut(auth);
 
   // Computed property: user is premium if they paid OR if testMode is on
@@ -31,6 +41,8 @@ export const AuthProvider = ({ children }) => {
     setTestMode,
     isPremium,
     loginWithGoogle,
+    registerWithEmail,
+    loginWithEmail,
     logout
   };
 

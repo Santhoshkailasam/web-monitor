@@ -15,10 +15,11 @@ import {
   FiStar, FiGlobe, FiLogIn, FiLogOut, 
   FiUser, FiTerminal, FiSettings, FiRepeat, FiList
 } from 'react-icons/fi';
+import Auth from './components/Auth';
 import loginBg from './assets/login-bg.png';
 
 const App = () => {
-  const { user, loginWithGoogle, logout, testMode, setTestMode, isPremium } = useAuth();
+  const { user, logout, testMode, setTestMode, isPremium } = useAuth();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [compareReport, setCompareReport] = useState(null);
@@ -109,7 +110,7 @@ const App = () => {
 
         <AnimatePresence mode="wait">
           {!user ? (
-            <LoginView key="login" onLogin={loginWithGoogle} />
+            <Auth key="auth" />
           ) : view === 'pricing' ? (
             <Pricing key="pricing" />
           ) : view === 'settings' ? (
@@ -209,111 +210,7 @@ const App = () => {
   );
 };
 
-const LoginView = ({ onLogin }) => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
-  return (
-    <div className="login-container" style={{ backgroundImage: `url(${loginBg})` }}>
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="glass-premium login-card"
-      >
-        <div className="login-visual">
-          <motion.div variants={itemVariants}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'var(--accent-blue)', padding: '0.6rem', borderRadius: '12px' }}>
-                <FiZap size={24} color="white" />
-              </div>
-              <span style={{ fontWeight: '800', fontSize: '1.75rem' }}>SpeedGenius</span>
-            </div>
-            
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '2rem', lineHeight: '1.2' }}>
-              Precision tools for <br />
-              <span className="gradient-blue">Modern Performance.</span>
-            </h2>
-
-            <div style={{ marginTop: '3rem' }}>
-              <FeatureItem 
-                icon={<FiMonitor size={18} />} 
-                title="Lighthouse Audits" 
-                desc="Deep analysis of performance, SEO, and accessibility metrics." 
-              />
-              <FeatureItem 
-                icon={<FiRepeat size={18} />} 
-                title="Comparison Mode" 
-                desc="Track improvements across multiple runs and deployments." 
-              />
-              <FeatureItem 
-                icon={<FiAward size={18} />} 
-                title="AI Suggestions" 
-                desc="Smart recommendations to boost your core web vitals." 
-              />
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="login-content">
-          <motion.div variants={itemVariants} style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome Back</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>
-              Sign in to your account to continue optimizing.
-            </p>
-
-            <button 
-              className="btn-primary" 
-              onClick={onLogin} 
-              style={{ 
-                width: '100%', 
-                justifyContent: 'center', 
-                padding: '1.25rem', 
-                fontSize: '1.1rem',
-                gap: '1rem',
-                boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.67-.35-1.39-.35-2.09s.13-1.42.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              Sign in with Google
-            </button>
-
-            <p style={{ marginTop: '3rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              By signing in, you agree to our <span style={{ color: 'white', cursor: 'pointer' }}>Terms of Service</span> and <span style={{ color: 'white', cursor: 'pointer' }}>Privacy Policy</span>.
-            </p>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-const FeatureItem = ({ icon, title, desc }) => (
-  <div className="feature-item">
-    <div className="feature-icon">
-      {icon}
-    </div>
-    <div>
-      <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{title}</h4>
-      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{desc}</p>
-    </div>
-  </div>
-);
 
 const Navbar = ({ setView, currentView }) => {
   const { user, logout, isPremium } = useAuth();
