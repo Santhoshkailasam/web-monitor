@@ -55,7 +55,10 @@ const App = () => {
       const jobId = data.jobId;
       console.log(`Polling status for job: ${jobId}`);
 
-      // Polling function
+      // Polling function with retries
+      let retryCount = 0;
+      const maxRetries = 5;
+
       const pollStatus = async () => {
         try {
           const statusRes = await axios.get(`https://web-monitor-eqkb.onrender.com/api/status/${jobId}`);
@@ -69,14 +72,22 @@ const App = () => {
           } else if (status === 'error') {
             throw new Error(error || 'Analysis failed');
           } else {
-            // Still loading, poll again in 3 seconds
+            // Reset retry count on successful response
+            retryCount = 0;
             setTimeout(pollStatus, 3000);
           }
         } catch (pollErr) {
-          console.error('Polling failed', pollErr);
-          const errorMsg = pollErr.response?.data?.error || pollErr.message || 'Analysis failed. Please try again.';
-          alert(`Analysis failed: ${errorMsg}`);
-          setLoading(false);
+          // If it's a network error, retry a few times
+          if (retryCount < maxRetries && (!pollErr.response || pollErr.response.status >= 500)) {
+            retryCount++;
+            console.warn(`Polling attempt ${retryCount} failed, retrying...`, pollErr.message);
+            setTimeout(pollStatus, 4000); // Wait a bit longer before retry
+          } else {
+            console.error('Polling failed after retries', pollErr);
+            const errorMsg = pollErr.response?.data?.error || pollErr.message || 'Analysis failed. Please try again.';
+            alert(`Analysis failed: ${errorMsg}`);
+            setLoading(false);
+          }
         }
       };
 
