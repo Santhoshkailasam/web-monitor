@@ -8,7 +8,7 @@ import {
   FiCloud, FiKey, FiCompass, FiMonitor, FiRepeat, FiArrowRight
 } from 'react-icons/fi';
 
-const Features = ({ setView }) => {
+const Features = ({ onTry }) => {
   const featureList = [
     { 
       title: 'Real-Time Performance Engine', 
@@ -116,7 +116,7 @@ const Features = ({ setView }) => {
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem', flex: 1 }}>{feature.desc}</p>
             
             <button 
-              onClick={() => setView('home')}
+              onClick={() => onTry(feature)}
               className="btn-secondary" 
               style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.75rem' }}
             >

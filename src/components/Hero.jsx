@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiGlobe, FiZap, FiArrowRight, FiShield } from 'react-icons/fi';
+import { FiGlobe, FiArrowRight, FiStar, FiClock, FiBarChart2 } from 'react-icons/fi';
 
 const Hero = ({ onAnalyze }) => {
   const [url, setUrl] = useState('');
@@ -10,52 +10,90 @@ const Hero = ({ onAnalyze }) => {
     if (url) onAnalyze(url);
   };
 
+  const quickUrls = [
+    { name: 'Google', url: 'https://google.com' },
+    { name: 'Amazon', url: 'https://amazon.com' },
+    { name: 'Vercel', url: 'https://vercel.com' },
+  ];
+
   return (
-    <section style={{ padding: '6rem 0 4rem', textAlign: 'center' }}>
-      <div className="container">
+    <section style={{ padding: '4rem 0 6rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      {/* Background Glows */}
+      <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '400px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)', zIndex: 0, filter: 'blur(80px)' }} />
+      <div style={{ position: 'absolute', top: '60%', left: '30%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)', zIndex: 0, filter: 'blur(100px)' }} />
+
+      <div className="container" style={{ position: 'relative', zIndex: 1 }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)', borderRadius: '100px', fontSize: '0.875rem', fontWeight: '600', marginBottom: '2rem' }}>
-            <FiShield size={16} /> Trusted by 5,000+ developers
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 1.25rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-glass)', backdropFilter: 'blur(10px)', color: 'var(--text-secondary)', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '500', marginBottom: '2.5rem' }}
+          >
+            <span style={{ display: 'flex', gap: '2px' }}>
+              {[1, 2, 3, 4, 5].map(i => <FiStar key={i} size={12} fill="var(--accent-gold)" color="var(--accent-gold)" />)}
+            </span>
+            <span style={{ width: '1px', height: '14px', background: 'var(--border-glass)' }} />
+            <span>Trusted by 5,000+ developers worldwide</span>
+          </motion.div>
           
-          <h1 className="gradient-text" style={{ fontSize: '4.5rem', lineHeight: '1.1', marginBottom: '1.5rem' }}>
-            Optimize Your Web <br /> Performance with AI
+          <h1 className="gradient-text" style={{ fontSize: '5rem', fontWeight: '900', lineHeight: '1.05', marginBottom: '2rem', letterSpacing: '-0.03em' }}>
+            The Intelligence Layer for <br />
+            <span style={{ color: 'white' }}>Web Performance.</span>
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 3rem', lineHeight: '1.6' }}>
-            Analyze any URL in seconds. Get professional audits, security checks, and 
-            Lighthouse-powered insights with our advanced performance engine.
+          
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.35rem', maxWidth: '750px', margin: '0 auto 4rem', lineHeight: '1.6', fontWeight: '400' }}>
+            Stop guessing. Start optimizing. SpeedGenius uses AI to dissect your site 
+            performance and deliver professional, actionable insights in seconds.
           </p>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}>
-              <div style={{ position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
-                <FiGlobe size={24} />
+          <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+            <div style={{ position: 'relative', maxWidth: '850px', margin: '0 auto' }}>
+              <div className="glass-premium" style={{ display: 'flex', alignItems: 'center', padding: '0.5rem', gap: '0.5rem', background: 'rgba(15, 15, 20, 0.4)', borderRadius: '24px' }}>
+                <div style={{ padding: '0 1.5rem', color: 'var(--text-secondary)' }}>
+                  <FiGlobe size={24} />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Enter website URL for deep audit..."
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', fontSize: '1.15rem', outline: 'none', padding: '1rem 0' }}
+                />
+                <button 
+                  type="submit"
+                  className="btn-primary" 
+                  style={{ padding: '1rem 2.5rem', borderRadius: '18px', fontSize: '1rem' }}
+                >
+                  Analyze <FiArrowRight size={18} />
+                </button>
               </div>
-              <input 
-                type="text" 
-                placeholder="Enter website URL (e.g., https://google.com)"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                style={{ width: '100%', padding: '1.5rem 1.5rem 1.5rem 4rem', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: 'white', fontSize: '1.1rem', outline: 'none' }}
-              />
-              <button 
-                type="submit"
-                className="btn-primary" 
-                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', padding: '0.8rem 2rem' }}
-              >
-                Analyze <FiZap size={18} />
-              </button>
             </div>
           </form>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', marginTop: '4rem' }}>
-            <MetricSummary label="Audit Time" value="< 30s" />
-            <MetricSummary label="Analysis categories" value="20+" />
-            <MetricSummary label="Global nodes" value="50+" />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginBottom: '5rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Try these:</span>
+            {quickUrls.map(item => (
+              <button 
+                key={item.name}
+                onClick={() => setUrl(item.url)}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', color: 'var(--text-secondary)', padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', transition: '0.2s' }}
+                onMouseEnter={(e) => { e.target.style.background = 'rgba(255,255,255,0.08)'; e.target.style.color = 'white'; }}
+                onMouseLeave={(e) => { e.target.style.background = 'rgba(255,255,255,0.03)'; e.target.style.color = 'var(--text-secondary)'; }}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '5rem' }}>
+            <HeroMetric label="Audit Speed" value="< 30s" icon={<FiClock size={16} />} />
+            <HeroMetric label="Metrics Tracked" value="20+" icon={<FiBarChart2 size={16} />} />
+            <HeroMetric label="Global Nodes" value="50+" icon={<FiGlobe size={16} />} />
           </div>
         </motion.div>
       </div>
@@ -63,10 +101,13 @@ const Hero = ({ onAnalyze }) => {
   );
 };
 
-const MetricSummary = ({ label, value }) => (
+const HeroMetric = ({ label, value, icon }) => (
   <div style={{ textAlign: 'center' }}>
-    <p style={{ fontSize: '1.5rem', fontWeight: '800', color: 'white' }}>{value}</p>
-    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div style={{ color: 'var(--accent-blue)', opacity: 0.8 }}>{icon}</div>
+      <p style={{ fontSize: '1.75rem', fontWeight: '900', color: 'white', margin: 0 }}>{value}</p>
+    </div>
+    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '600' }}>{label}</p>
   </div>
 );
 

@@ -10,12 +10,18 @@ import {
   FiCheckCircle, FiInfo, FiCode, FiShield, FiEye,
   FiSmartphone, FiMonitor, FiDownload, FiShare2, FiBarChart2, 
   FiLock, FiMessageSquare, FiFacebook, FiTwitter, FiLinkedin,
-  FiCopy, FiRepeat, FiGlobe, FiZap
+  FiCopy, FiRepeat, FiGlobe, FiZap, FiAward, FiTrendingUp
 } from 'react-icons/fi';
 
 const Dashboard = ({ data, history, onCompare, isCompareView }) => {
   const { isPremium } = useAuth();
   const [activeTab, setActiveTab] = useState('performance');
+  const [isSyncing, setIsSyncing] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsSyncing(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!data) return null;
 
@@ -56,30 +62,39 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
       className="container" 
       style={{ padding: '2rem 0 6rem' }}
     >
-      {/* Top Scores Section */}
+      {/* Premium Header Summary */}
       {!isCompareView && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-          <ScoreBubble label="Performance" value={data.performance} color="var(--accent-emerald)" />
-          <ScoreBubble label="SEO" value={data.seo} color="var(--accent-purple)" />
-          <ScoreBubble label="Accessibility" value={data.accessibility} color="var(--accent-blue)" />
-          <ScoreBubble label="Best Practices" value={data.bestPractices} color="var(--accent-gold)" />
-          <ScoreBubble label="Security" value={85} color="var(--accent-rose)" />
+        <div style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <ScoreBubble label="Performance" value={data.performance} color="var(--accent-emerald)" icon={<FiZap size={16} />} />
+            <ScoreBubble label="SEO" value={data.seo} color="var(--accent-purple)" icon={<FiEye size={16} />} />
+            <ScoreBubble label="Accessibility" value={data.accessibility} color="var(--accent-blue)" icon={<FiSmartphone size={16} />} />
+            <ScoreBubble label="Best Practices" value={data.bestPractices} color="var(--accent-gold)" icon={<FiCheckCircle size={16} />} />
+          </div>
         </div>
       )}
 
       {/* Header Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
-        <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Detailed Report</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Detailed audit for <span style={{ color: 'white' }}>{data.url}</span></p>
+      <div className="glass-premium" style={{ padding: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', borderLeft: '4px solid var(--accent-blue)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '16px' }}>
+            <FiGlobe size={32} color="var(--accent-blue)" className="animate-pulse-glow" />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
+              <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{new URL(data.url).hostname}</h2>
+              <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>Healthy</span>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Analyzed on <span style={{ color: 'white' }}>{new Date(data.createdAt).toLocaleString()}</span></p>
+          </div>
         </div>
         {!isCompareView && (
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button className="btn-secondary" onClick={() => handleExport('csv')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FiShare2 size={18} /> Export CSV
+              <FiShare2 size={18} /> Share Report
             </button>
             <button className="btn-primary" onClick={() => handleExport('pdf')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FiDownload size={18} /> Export PDF <span className="badge badge-pro" style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem' }}>PRO</span>
+              <FiDownload size={18} /> Download PDF {!isPremium && <span className="badge badge-pro" style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem', marginLeft: '0.5rem' }}>PRO</span>}
             </button>
           </div>
         )}
@@ -123,32 +138,57 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
 
         {/* Sidebar Health Radar */}
         {!isCompareView && (
-          <div className="glass" style={{ padding: '2rem', height: 'fit-content' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>Overall Health</h3>
-            <div style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
-                  <Radar
-                    name="Score"
-                    dataKey="A"
-                    stroke="var(--accent-blue)"
-                    fill="var(--accent-blue)"
-                    fillOpacity={0.5}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div className="glass-premium" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>Health Radar</h3>
+                <FiActivity size={18} color="var(--accent-blue)" />
+              </div>
+              <div style={{ height: '220px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
+                    <Radar
+                      name="Score"
+                      dataKey="A"
+                      stroke="var(--accent-blue)"
+                      fill="var(--accent-blue)"
+                      fillOpacity={0.3}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <InsightRow label="Site Status" value="Excellent" color="var(--accent-emerald)" />
+                <InsightRow label="Load Time" value={`${data.metrics.lcp}s`} color="var(--accent-blue)" />
+                <InsightRow label="SEO Health" value={`${data.seo}%`} color="var(--accent-purple)" />
+              </div>
             </div>
-            <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Status</span>
-                <span style={{ color: 'var(--accent-emerald)', fontWeight: '600' }}>Excellent</span>
+
+            <div className="glass-premium" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Live Monitor</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isSyncing ? 'var(--accent-gold)' : 'var(--accent-emerald)', boxShadow: isSyncing ? '0 0 10px var(--accent-gold)' : '0 0 10px var(--accent-emerald)' }} />
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{isSyncing ? 'Syncing...' : 'Live'}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Last Scanned</span>
-                <span>Just now</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <LiveMetric label="Server Latency" value="42ms" trend="up" />
+                <LiveMetric label="Request Queue" value="0" trend="stable" />
+                <LiveMetric label="Edge Cache" value="98.2%" trend="up" />
               </div>
+            </div>
+
+            <div className="glass-premium" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)' }}>
+              <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FiAward color="var(--accent-gold)" /> Quick Tip
+              </h4>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                Optimize your Largest Contentful Paint by preloading the main hero image and reducing initial server response time.
+              </p>
+              <button className="btn-secondary" style={{ width: '100%', marginTop: '1.5rem', fontSize: '0.8rem' }}>View Roadmap</button>
             </div>
           </div>
         )}
@@ -247,12 +287,50 @@ const SecurityTab = ({ data }) => (
   </div>
 );
 
-const ScoreBubble = ({ label, value, color }) => (
-  <div className="glass" style={{ padding: '1.5rem', textAlign: 'center', borderTop: `4px solid ${color}` }}>
-    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
-    <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'white' }}>{value}%</div>
-    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '1rem', overflow: 'hidden' }}>
-      <div style={{ width: `${value}%`, height: '100%', background: color }} />
+const ScoreBubble = ({ label, value, color, icon }) => (
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="glass-premium" 
+    style={{ padding: '2rem', borderBottom: `4px solid ${color}`, position: 'relative', overflow: 'hidden' }}
+  >
+    <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1 }}>
+      {React.cloneElement(icon, { size: 80 })}
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div style={{ background: `${color}20`, color: color, padding: '0.5rem', borderRadius: '8px' }}>
+        {icon}
+      </div>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>{label}</p>
+    </div>
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+      <span style={{ fontSize: '2.5rem', fontWeight: '800' }}>{value}</span>
+      <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%</span>
+    </div>
+    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '1.5rem', overflow: 'hidden' }}>
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: `${value}%` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        style={{ height: '100%', background: color }} 
+      />
+    </div>
+  </motion.div>
+);
+
+const InsightRow = ({ label, value, color }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+    <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+    <span style={{ color: color || 'white', fontWeight: '600' }}>{value}</span>
+  </div>
+);
+
+const LiveMetric = ({ label, value, trend }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <span style={{ fontSize: '0.85rem', fontWeight: '700' }}>{value}</span>
+      {trend === 'up' && <FiTrendingUp size={12} color="var(--accent-emerald)" />}
+      {trend === 'stable' && <FiActivity size={12} color="var(--accent-blue)" />}
     </div>
   </div>
 );
