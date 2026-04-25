@@ -1,0 +1,142 @@
+import lighthouse from 'lighthouse';
+import chromeLauncher from 'chrome-launcher';
+import axios from 'axios';
+
+export const runLighthouse = async (url, device = 'desktop') => {
+  console.log(`🚀 Starting Lighthouse (${device}) for: ${url}`);
+
+  const chrome = await chromeLauncher.launch({
+    chromeFlags: ['--headless', '--no-sandbox', '--disable-gpu'],
+  });
+
+  try {
+    const options = {
+      logLevel: 'info',
+      output: 'json',
+      onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
+      port: chrome.port,
+      formFactor: device === 'mobile' ? 'mobile' : 'desktop',
+      screenEmulation: device === 'mobile' ? {
+        mobile: true,
+        width: 360,
+        height: 640,
+        deviceScaleFactor: 2,
+        disabled: false,
+      } : {
+        mobile: false,
+        width: 1350,
+        height: 940,
+        deviceScaleFactor: 1,
+        disabled: false,
+      },
+      throttling: device === 'mobile' ? {
+        rttMs: 150,
+        throughputKbps: 1638.4,
+        requestLatencyMs: 0,
+        downloadThroughputKbps: 0,
+        uploadThroughputKbps: 0,
+        cpuSlowdownMultiplier: 4,
+      } : {
+        rttMs: 40,
+        throughputKbps: 10240,
+        cpuSlowdownMultiplier: 1,
+        requestLatencyMs: 0,
+        downloadThroughputKbps: 0,
+        uploadThroughputKbps: 0,
+      },
+    };
+
+    const runnerResult = await lighthouse(url, options);
+    console.log(`✅ Lighthouse completed for: ${url}`);
+
+    const report = runnerResult.lhr;
+
+    return {
+      url,
+      device,
+      performance: Math.round(report.categories.performance.score * 100),
+      accessibility: Math.round(report.categories.accessibility.score * 100),
+      bestPractices: Math.round(report.categories['best-practices'].score * 100),
+      seo: Math.round(report.categories.seo.score * 100),
+
+      metrics: {
+        lcp: parseFloat((report.audits['largest-contentful-paint'].numericValue / 1000).toFixed(2)) || 0,
+        cls: report.audits['cumulative-layout-shift'].numericValue || 0,
+        fcp: parseFloat((report.audits['first-contentful-paint'].numericValue / 1000).toFixed(2)) || 0,
+        speedIndex: report.audits['speed-index']?.displayValue || 'N/A',
+        tbt: report.audits['total-blocking-time']?.displayValue || '0 ms',
+      },
+
+      resources: {
+        js: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'script')?.size || 0) / 1024),
+        css: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'stylesheet')?.size || 0) / 1024),
+        images: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'image')?.size || 0) / 1024),
+        total: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'total')?.size || 0) / 1024),
+      },
+
+      suggestions: getSuggestionsFromAudits(report.audits),
+      security: await checkSecurityHeaders(url)
+    };
+
+  } catch (error) {
+    console.error('❌ Lighthouse error:', error);
+    throw error;
+  } finally {
+    await chrome.kill();
+    console.log(`🛑 Chrome closed for: ${url}`);
+  }
+};
+
+const checkSecurityHeaders = async (url) => {
+  try {
+    const response = await axios.get(url, { timeout: 5000 });
+    const headers = response.headers;
+    return {
+      hsts: !!headers['strict-transport-security'],
+      csp: !!headers['content-security-policy'],
+      xFrame: !!headers['x-frame-options'],
+      xContentType: !!headers['x-content-type-options'],
+      referrer: !!headers['referrer-policy'],
+    };
+  } catch (e) {
+    return { hsts: false, csp: false, xFrame: false, xContentType: false, referrer: false };
+  }
+};
+
+const getSuggestionsFromAudits = (audits) => {
+  const suggestions = [];
+  const auditKeys = [
+    'modern-image-formats',
+    'efficient-animated-content',
+    'unused-javascript',
+    'unused-css-rules',
+    'render-blocking-resources',
+    'uses-optimized-images'
+  ];
+
+  auditKeys.forEach(key => {
+    const audit = audits[key];
+    if (audit && audit.score !== null && audit.score < 0.9) {
+      let codeSnippet = audit.displayValue || 'Optimize this resource.';
+
+      if (key === 'unused-javascript') {
+        codeSnippet = `// Remove unused JS or lazy load modules\nconst Component = React.lazy(() => import('./Component'));`;
+      }
+      if (key === 'render-blocking-resources') {
+        codeSnippet = `<!-- Use async/defer for scripts -->\n<script src="script.js" defer></script>`;
+      }
+      if (key === 'modern-image-formats') {
+        codeSnippet = `<!-- Use WebP images -->\n<img src="image.webp" alt="optimized image" />`;
+      }
+
+      suggestions.push({
+        impact: audit.score < 0.5 ? 'High' : 'Medium',
+        title: audit.title,
+        description: audit.description,
+        codeSnippet,
+      });
+    }
+  });
+
+  return suggestions;
+};
