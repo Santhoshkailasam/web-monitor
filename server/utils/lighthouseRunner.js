@@ -11,7 +11,7 @@ export const runLighthouse = async (url, device = 'desktop') => {
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
       headless: true,
     });
-    process.env.CHROME_PATH = browser.executablePath();
+    process.env.CHROME_PATH = puppeteer.executablePath();
     console.log(`📍 Chrome executable path: ${process.env.CHROME_PATH}`);
     const port = parseInt(new URL(browser.wsEndpoint()).port);
     const options = {
