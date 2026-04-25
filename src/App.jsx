@@ -34,7 +34,7 @@ const App = () => {
   const fetchHistory = async () => {
     if (!user) return;
     try {
-      const response = await axios.get(`http://localhost:5000/api/history?userId=${user.uid}`);
+      const response = await axios.get(`https://web-monitor-eqkb.onrender.com/api/history?userId=${user.uid}`);
       setHistory(response.data);
     } catch (err) {
       console.error('Failed to fetch history', err);
@@ -46,7 +46,7 @@ const App = () => {
     setReport(null);
     setCompareReport(null);
     try {
-      const response = await axios.post('http://localhost:5000/api/analyze', { 
+      const response = await axios.post('https://web-monitor-eqkb.onrender.com/api/analyze', { 
         url, 
         device,
         userId: user?.uid 
@@ -56,7 +56,8 @@ const App = () => {
       setView('home');
     } catch (err) {
       console.error('Analysis failed', err);
-      alert('Analysis failed. Please try again.');
+      const errorMsg = err.response?.data?.error || err.message || 'Analysis failed. Please try again.';
+      alert(`Analysis failed: ${errorMsg}`);
     } finally {
       setLoading(false);
     }

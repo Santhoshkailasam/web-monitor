@@ -69,7 +69,8 @@ app.get('/api/history', async (req, res) => {
     const reports = await Report.find(filter).sort({ createdAt: -1 }).limit(20);
     res.json(reports);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch history' });
+    console.error('History fetch failed:', error);
+    res.status(500).json({ error: 'Failed to fetch history', details: error.message });
   }
 });
 
