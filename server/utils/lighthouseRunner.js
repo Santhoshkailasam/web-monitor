@@ -12,6 +12,7 @@ export const runLighthouse = async (url, device = 'desktop') => {
       headless: true,
     });
     process.env.CHROME_PATH = browser.executablePath();
+    console.log(`📍 Chrome executable path: ${process.env.CHROME_PATH}`);
     const port = parseInt(new URL(browser.wsEndpoint()).port);
     const options = {
       logLevel: 'info',
