@@ -2,30 +2,59 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FiCheck, FiZap, FiShield, FiAward } from 'react-icons/fi';
 
-const Pricing = () => {
+const Pricing = ({ onSelectPlan }) => {
   const tiers = [
     {
       name: 'Free',
       price: '$0',
+      title: 'Free Plan',
       description: 'Perfect for side projects',
-      features: ['5 scans per day', 'Performance metrics', 'Standard history', 'Core web vitals'],
+      features: ['5 scans per day', 'Performance metrics', 'Standard history', 'Core web vitals', 'AI code suggestions'],
       icon: <FiZap size={24} />,
       color: 'var(--text-secondary)'
     },
     {
       name: 'Pro',
       price: '$19',
-      description: 'For growing websites',
-      features: ['Unlimited scans', 'Advanced SEO & Accessibility', 'PDF & CSV Export', 'Comparison tool', '7-day trend history'],
+      title: 'Professional Plan',
+      description: 'For power users and developers',
+      features: [
+        'Mobile emulation & throttling',
+        '30-day historical trends',
+        'Side-by-side comparison',
+        'Security headers audit (A–F)',
+        'Resource weight breakdown',
+        'Social meta previews',
+        'Branded PDF & CSV export',
+        'Slack & Discord alerts',
+        'Weekly auto-audits',
+        'API access (100 req/day)',
+        'Competitor benchmarking',
+        'Font load & 3rd-party audits'
+      ],
       icon: <FiAward size={24} color="#f59e0b" />,
       color: '#f59e0b',
       popular: true
     },
     {
       name: 'Enterprise',
-      price: '$99',
-      description: 'For teams and agencies',
-      features: ['White-label reports', 'API Access', 'Auto-monitoring', 'Slack/Discord alerts', 'Priority support'],
+      price: '$79',
+      title: 'Enterprise Plan',
+      description: 'For teams and organizations',
+      features: [
+        'Team workspaces & RBAC',
+        'White-label reports',
+        'CI/CD integration (GitHub)',
+        'Unlimited API access',
+        'Priority audit queue',
+        'Uptime & SSL monitoring',
+        'Custom pass/fail thresholds',
+        'SSO / SAML login',
+        'Dedicated account manager',
+        'Multi-domain grouping',
+        'Audit webhooks (Push results)',
+        'Raw Lighthouse JSON export'
+      ],
       icon: <FiZap size={24} color="#3b82f6" />,
       color: '#3b82f6'
     }
@@ -45,7 +74,8 @@ const Pricing = () => {
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ delay: idx * 0.1 }}
             className={`glass glow-card ${tier.popular ? 'animate-pulse-glow' : ''}`}
             style={{ 
@@ -83,7 +113,11 @@ const Pricing = () => {
               ))}
             </div>
 
-            <button className={tier.popular ? 'btn-primary' : 'btn-secondary'} style={{ width: '100%', justifyContent: 'center' }}>
+            <button 
+              onClick={() => onSelectPlan(tier)}
+              className={tier.popular ? 'btn-primary' : 'btn-secondary'} 
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
               Get Started
             </button>
           </motion.div>

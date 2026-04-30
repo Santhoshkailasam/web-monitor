@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
 import { 
@@ -13,10 +16,11 @@ import {
   FiCopy, FiRepeat, FiGlobe, FiZap, FiAward, FiTrendingUp
 } from 'react-icons/fi';
 
-const Dashboard = ({ data, history, onCompare, isCompareView }) => {
+const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
   const { isPremium } = useAuth();
   const [activeTab, setActiveTab] = useState('performance');
   const [isSyncing, setIsSyncing] = useState(true);
+  const dashboardRef = useRef(null);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setIsSyncing(false), 2000);
@@ -25,16 +29,58 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
 
   if (!data) return null;
 
-  const handleExport = (type) => {
-    const content = JSON.stringify(data, null, 2);
-    const blob = new Blob([content], { type: type === 'pdf' ? 'application/pdf' : 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `speedgenius_report_${Date.now()}.${type}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExport = async (type) => {
+    if (type === 'pdf') {
+      if (!isPremium) {
+        setView('pricing');
+        return;
+      }
+      
+      const toastId = toast.loading('Generating PDF report...');
+      try {
+        const element = dashboardRef.current;
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#0a0a0c'
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`speedgenius_report_${Date.now()}.pdf`);
+        toast.success('PDF downloaded successfully!', { id: toastId });
+      } catch (err) {
+        console.error('PDF generation failed', err);
+        toast.error('Failed to generate PDF. Please try again.', { id: toastId });
+      }
+    } else {
+      // CSV Export
+      const headers = ['Metric', 'Value', 'Unit'];
+      const rows = [
+        ['Performance', data.performance, '%'],
+        ['SEO', data.seo, '%'],
+        ['Accessibility', data.accessibility, '%'],
+        ['Best Practices', data.bestPractices, '%'],
+        ['LCP', data.metrics.lcp, 's'],
+        ['CLS', data.metrics.cls, ''],
+        ['FCP', data.metrics.fcp, 's'],
+        ['Speed Index', data.metrics.speedIndex, '']
+      ];
+      
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.body.appendChild(document.createElement('a'));
+      link.href = url;
+      link.download = `speedgenius_report_${Date.now()}.csv`;
+      link.click();
+      document.body.removeChild(link);
+      toast.success('CSV downloaded successfully!');
+    }
   };
 
   const tabs = [
@@ -48,15 +94,16 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
   ];
 
   const radarData = [
-    { subject: 'Perf', A: data.performance, fullMark: 100 },
-    { subject: 'SEO', A: data.seo, fullMark: 100 },
-    { subject: 'Access', A: data.accessibility, fullMark: 100 },
-    { subject: 'Best Prac', A: data.bestPractices, fullMark: 100 },
-    { subject: 'Security', A: 85, fullMark: 100 },
+    { subject: 'Perf', A: data.performance },
+    { subject: 'SEO', A: data.seo },
+    { subject: 'Access', A: data.accessibility },
+    { subject: 'Best Pr', A: data.bestPractices },
+    { subject: 'Secur', A: data.security?.hsts ? 100 : 50 }
   ];
 
   return (
     <motion.section 
+      ref={dashboardRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="container" 
@@ -100,8 +147,8 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isCompareView ? '1fr' : '1fr 350px', gap: '2rem' }}>
-        <div>
+      <div className="dashboard-grid-layout" style={{ display: 'grid', gap: '2rem' }}>
+        <div style={{ minWidth: 0 }}>
           {/* Tabs Nav */}
           <div className="tabs-nav">
             {tabs.map(tab => (
@@ -128,10 +175,10 @@ const Dashboard = ({ data, history, onCompare, isCompareView }) => {
               {activeTab === 'performance' && <PerformanceTab data={data} />}
               {activeTab === 'seo' && <SEOTab data={data} />}
               {activeTab === 'accessibility' && <AccessibilityTab data={data} />}
-              {activeTab === 'security' && (isPremium ? <SecurityTab data={data.security} /> : <LockedTab category="security" />)}
-              {activeTab === 'resources' && (isPremium ? <ResourcesTab data={data.resources} /> : <LockedTab category="resources" />)}
-              {activeTab === 'social' && (isPremium ? <SocialTab data={data} /> : <LockedTab category="social" />)}
-              {activeTab === 'compare' && (isPremium ? <CompareTab data={data} history={history} onCompare={onCompare} /> : <LockedTab category="compare" />)}
+               {activeTab === 'security' && (isPremium ? <SecurityTab data={data.security} /> : <LockedTab category="security" setView={setView} />)}
+              {activeTab === 'resources' && (isPremium ? <ResourcesTab data={data.resources} /> : <LockedTab category="resources" setView={setView} />)}
+              {activeTab === 'social' && (isPremium ? <SocialTab data={data} /> : <LockedTab category="social" setView={setView} />)}
+              {activeTab === 'compare' && (isPremium ? <CompareTab data={data} history={history} onCompare={onCompare} /> : <LockedTab category="compare" setView={setView} />)}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -291,16 +338,26 @@ const ScoreBubble = ({ label, value, color, icon }) => (
   <motion.div 
     whileHover={{ y: -5 }}
     className="glass-premium" 
-    style={{ padding: '2rem', borderBottom: `4px solid ${color}`, position: 'relative', overflow: 'hidden' }}
+    style={{ 
+      padding: '2rem', 
+      borderBottom: `4px solid ${color}`, 
+      position: 'relative', 
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      minHeight: '180px',
+      willChange: 'transform'
+    }}
   >
     <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1 }}>
       {React.cloneElement(icon, { size: 80 })}
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-      <div style={{ background: `${color}20`, color: color, padding: '0.5rem', borderRadius: '8px' }}>
+      <div style={{ background: `${color}15`, color: color, width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {icon}
       </div>
-      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>{label}</p>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '700', letterSpacing: '0.02em' }}>{label}</p>
     </div>
     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
       <span style={{ fontSize: '2.5rem', fontWeight: '800' }}>{value}</span>
@@ -435,7 +492,7 @@ const CompareTab = ({ data, history, onCompare }) => (
   </div>
 );
 
-const LockedTab = ({ category }) => (
+const LockedTab = ({ category, setView }) => (
   <div className="glass" style={{ padding: '4rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
     <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
       <FiLock size={32} color="var(--accent-gold)" />
@@ -444,7 +501,7 @@ const LockedTab = ({ category }) => (
     <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '400px' }}>
       {category.charAt(0).toUpperCase() + category.slice(1)} audits and advanced analytics are available to SpeedGenius Pro and Enterprise users.
     </p>
-    <button className="btn-primary">Upgrade to Unlock</button>
+    <button className="btn-primary" onClick={() => setView('pricing')}>Upgrade to Unlock</button>
   </div>
 );
 

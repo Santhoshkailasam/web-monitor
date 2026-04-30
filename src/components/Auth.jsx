@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiZap, FiMail, FiLock, FiAlertCircle, 
-  FiArrowRight, FiMonitor, FiRepeat, FiAward, FiUserPlus
+  FiArrowRight, FiMonitor, FiRepeat, FiAward, FiUserPlus, FiEye, FiEyeOff
 } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../AuthContext';
 import loginBg from '../assets/login-bg.png';
 
@@ -13,8 +14,9 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
-  const { loginWithEmail, registerWithEmail } = useAuth();
+  const { loginWithEmail, registerWithEmail, loginWithGoogle } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +31,19 @@ const Auth = () => {
       }
     } catch (err) {
       console.error('Auth error:', err);
+      setError(err.message.replace('Firebase: ', ''));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      console.error('Google Auth error:', err);
       setError(err.message.replace('Firebase: ', ''));
     } finally {
       setLoading(false);
@@ -140,13 +155,22 @@ const Auth = () => {
                   <div className="input-wrapper">
                     <div className="input-icon"><FiLock size={18} /></div>
                     <input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       className="form-input" 
                       placeholder="••••••••" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      style={{ paddingRight: '3.5rem' }}
                     />
+                    <button 
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex="-1"
+                    >
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </button>
                   </div>
                 </div>
 
@@ -174,13 +198,27 @@ const Auth = () => {
                 </button>
               </form>
 
-              <div className="auth-toggle" style={{ textAlign: 'center' }}>
-                {isLogin ? (
-                  <>Don't have an account? <span onClick={() => setIsLogin(false)}>Sign Up</span></>
-                ) : (
-                  <>Already have an account? <span onClick={() => setIsLogin(true)}>Sign In</span></>
-                )}
-              </div>
+                <div className="divider">
+                  <span>Or continue with</span>
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="btn-google"
+                  style={{ width: '100%' }}
+                >
+                  <FcGoogle size={22} />
+                  Continue with Google
+                </button>
+
+                <div className="auth-toggle" style={{ textAlign: 'center' }}>
+                  {isLogin ? (
+                    <>Don't have an account? <span onClick={() => setIsLogin(false)}>Sign Up</span></>
+                  ) : (
+                    <>Already have an account? <span onClick={() => setIsLogin(true)}>Sign In</span></>
+                  )}
+                </div>
             </motion.div>
           </AnimatePresence>
         </div>
