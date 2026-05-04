@@ -107,8 +107,14 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="container" 
-      style={{ padding: '2rem 0 6rem' }}
+      style={{ padding: '2rem 0 6rem', position: 'relative' }}
     >
+      {/* Ultra Premium Ambient Background Orbs */}
+      <div className="dashboard-ambient-bg">
+        <div className="orb-1" />
+        <div className="orb-2" />
+      </div>
+
       {/* Premium Header Summary */}
       {!isCompareView && (
         <div style={{ marginBottom: '4rem' }}>
@@ -122,26 +128,32 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
       )}
 
       {/* Header Actions */}
-      <div className="glass-premium" style={{ padding: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', borderLeft: '4px solid var(--accent-blue)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '16px' }}>
-            <FiGlobe size={32} color="var(--accent-blue)" className="animate-pulse-glow" />
+      <div className="dash-header-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem', position: 'relative', zIndex: 1 }}>
+          <div style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)', padding: '1.25rem', borderRadius: '18px', border: '1px solid rgba(59, 130, 246, 0.3)', boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)' }}>
+            <FiGlobe size={36} color="var(--accent-blue)" className="animate-pulse-glow" />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
-              <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{new URL(data.url).hostname}</h2>
-              <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>Healthy</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.4rem' }}>
+              <h2 style={{ fontSize: '1.75rem', margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>{new URL(data.url).hostname}</h2>
+              <span className="badge score-badge-lg" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                <FiCheckCircle size={14} /> Healthy
+              </span>
             </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Analyzed on <span style={{ color: 'white' }}>{new Date(data.createdAt).toLocaleString()}</span></p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Report generated on <span style={{ color: 'white', fontWeight: '600' }}>{new Date(data.createdAt).toLocaleString()}</span></p>
           </div>
         </div>
+        
+        {/* Background Decorative Element */}
+        <div style={{ position: 'absolute', right: '0', top: '0', width: '300px', height: '100%', background: 'linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)', pointerEvents: 'none' }} />
+
         {!isCompareView && (
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="btn-secondary" onClick={() => handleExport('csv')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="dash-header-actions" style={{ display: 'flex', gap: '1rem', position: 'relative', zIndex: 1 }}>
+            <button className="btn-secondary" onClick={() => handleExport('csv')} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.5rem', background: 'rgba(255,255,255,0.03)' }}>
               <FiShare2 size={18} /> Share Report
             </button>
-            <button className="btn-primary" onClick={() => handleExport('pdf')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FiDownload size={18} /> Download PDF {!isPremium && <span className="badge badge-pro" style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem', marginLeft: '0.5rem' }}>PRO</span>}
+            <button className="btn-primary" onClick={() => handleExport('pdf')} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.5rem', boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)' }}>
+              <FiDownload size={18} /> Export PDF {!isPremium && <span className="badge badge-pro" style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem', marginLeft: '0.5rem' }}>PRO</span>}
             </button>
           </div>
         )}
@@ -150,13 +162,12 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
       <div className="dashboard-grid-layout" style={{ display: 'grid', gap: '2rem' }}>
         <div style={{ minWidth: 0 }}>
           {/* Tabs Nav */}
-          <div className="tabs-nav">
+          <div className="tabs-premium">
             {tabs.map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                className={`tab-premium ${activeTab === tab.id ? 'active' : ''}`}
               >
                 {tab.icon} {tab.label}
                 {['security', 'resources', 'social', 'compare'].includes(tab.id) && !isPremium && <FiLock size={12} color="var(--accent-gold)" />}
@@ -186,7 +197,7 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
         {/* Sidebar Health Radar */}
         {!isCompareView && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="glass-premium" style={{ padding: '2rem' }}>
+            <div className="sidebar-card-premium">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>Health Radar</h3>
                 <FiActivity size={18} color="var(--accent-blue)" />
@@ -213,7 +224,7 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
               </div>
             </div>
 
-            <div className="glass-premium" style={{ padding: '2rem' }}>
+            <div className="sidebar-card-premium">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: '700' }}>Live Monitor</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -228,7 +239,7 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
               </div>
             </div>
 
-            <div className="glass-premium" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)' }}>
+            <div className="sidebar-card-premium" style={{ background: 'linear-gradient(145deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%)' }}>
               <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <FiAward color="var(--accent-gold)" /> Quick Tip
               </h4>
@@ -245,10 +256,12 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
 };
 
 const PerformanceTab = ({ data }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '15px', border: '1px solid var(--border-glass)' }}>
-      <h3 style={{ fontSize: '1.1rem' }}>Core Metrics</h3>
-      <span className="badge" style={{ background: 'var(--accent-emerald)', color: 'white' }}>{data.performance}% Score</span>
+  <div className="tab-content-glass">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Core Metrics</h3>
+      <span className="badge score-badge-lg" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+        {data.performance}% Score
+      </span>
     </div>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
     <MetricCard 
@@ -284,7 +297,7 @@ const PerformanceTab = ({ data }) => (
 );
 
 const AccessibilityTab = ({ data }) => (
-  <div className="glass" style={{ padding: '2rem' }}>
+  <div className="tab-content-glass">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
       <h3>Accessibility Audit</h3>
       <span className="badge" style={{ background: 'var(--accent-blue)', color: 'white' }}>{data.accessibility}% Score</span>
@@ -305,7 +318,7 @@ const AccessibilityTab = ({ data }) => (
 );
 
 const SEOTab = ({ data }) => (
-  <div className="glass" style={{ padding: '2rem' }}>
+  <div className="tab-content-glass">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
       <h3>SEO Audit Details</h3>
       <span className="badge" style={{ background: 'var(--accent-purple)', color: 'white' }}>{data.seo}% Score</span>
@@ -321,7 +334,7 @@ const SEOTab = ({ data }) => (
 );
 
 const SecurityTab = ({ data }) => (
-  <div className="glass" style={{ padding: '2rem' }}>
+  <div className="tab-content-glass">
     <h3 style={{ marginBottom: '1.5rem' }}>Security Headers Analysis</h3>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <AuditItem success={data?.hsts} title="Strict-Transport-Security (HSTS)" />
@@ -334,60 +347,90 @@ const SecurityTab = ({ data }) => (
   </div>
 );
 
-const ScoreBubble = ({ label, value, color, icon }) => (
-  <motion.div 
-    whileHover={{ y: -5 }}
-    className="glass-premium" 
-    style={{ 
-      padding: '2rem', 
-      borderBottom: `4px solid ${color}`, 
-      position: 'relative', 
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      minHeight: '180px',
-      willChange: 'transform'
-    }}
-  >
-    <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1 }}>
-      {React.cloneElement(icon, { size: 80 })}
-    </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-      <div style={{ background: `${color}15`, color: color, width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {icon}
+const ScoreBubble = ({ label, value, color, icon }) => {
+  const radius = 32;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (value / 100) * circumference;
+
+  return (
+    <motion.div 
+      whileHover={{ y: -6, scale: 1.02 }}
+      className="score-card-premium"
+      style={{ borderBottom: `3px solid ${color}` }}
+    >
+      <div className="card-bg-icon" style={{ color: color }}>
+        {React.cloneElement(icon, { size: 100 })}
       </div>
-      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '700', letterSpacing: '0.02em' }}>{label}</p>
-    </div>
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-      <span style={{ fontSize: '2.5rem', fontWeight: '800' }}>{value}</span>
-      <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>%</span>
-    </div>
-    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '1.5rem', overflow: 'hidden' }}>
-      <motion.div 
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        style={{ height: '100%', background: color }} 
-      />
-    </div>
-  </motion.div>
-);
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ 
+            background: `linear-gradient(135deg, ${color}20 0%, ${color}05 100%)`, 
+            color: color, 
+            width: '42px', height: '42px', 
+            borderRadius: '12px', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${color}40`,
+            boxShadow: `0 4px 12px ${color}20`
+          }}>
+            {icon}
+          </div>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', fontWeight: '800', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            {label}
+          </p>
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem', position: 'relative', zIndex: 1 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
+            <span className="text-shimmer" style={{ fontSize: '3rem', fontWeight: '900', filter: `drop-shadow(0 2px 10px ${color}40)` }}>
+              {value}
+            </span>
+          </div>
+          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginTop: '0.2rem', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Score out of 100</p>
+        </div>
+        
+        <div className="score-ring-container" style={{ width: '80px', height: '80px' }}>
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle 
+              cx="40" cy="40" r={radius} 
+              className="score-ring-bg" 
+            />
+            <motion.circle 
+              cx="40" cy="40" r={radius} 
+              className="score-ring-fill" 
+              stroke={color}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset }}
+              transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
+              style={{ strokeDasharray: circumference }}
+            />
+          </svg>
+          <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white' }}>{value}</span>
+            <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const InsightRow = ({ label, value, color }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
-    <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
-    <span style={{ color: color || 'white', fontWeight: '600' }}>{value}</span>
+  <div className="insight-row-premium">
+    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>{label}</span>
+    <span style={{ color: color || 'white', fontWeight: '800', fontSize: '0.9rem' }}>{value}</span>
   </div>
 );
 
 const LiveMetric = ({ label, value, trend }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{label}</span>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      <span style={{ fontSize: '0.85rem', fontWeight: '700' }}>{value}</span>
-      {trend === 'up' && <FiTrendingUp size={12} color="var(--accent-emerald)" />}
-      {trend === 'stable' && <FiActivity size={12} color="var(--accent-blue)" />}
+  <div className="live-metric-premium">
+    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+      <span style={{ fontSize: '0.9rem', fontWeight: '800' }}>{value}</span>
+      {trend === 'up' && <div style={{ background: 'rgba(16,185,129,0.1)', padding: '0.2rem', borderRadius: '4px' }}><FiTrendingUp size={12} color="var(--accent-emerald)" /></div>}
+      {trend === 'stable' && <div style={{ background: 'rgba(59,130,246,0.1)', padding: '0.2rem', borderRadius: '4px' }}><FiActivity size={12} color="var(--accent-blue)" /></div>}
     </div>
   </div>
 );
@@ -402,7 +445,7 @@ const ResourcesTab = ({ data }) => {
   ];
 
   return (
-    <div className="glass" style={{ padding: '2rem' }}>
+    <div className="tab-content-glass">
       <h3 style={{ marginBottom: '2rem' }}>Resource Weight Distribution</h3>
       <div style={{ height: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -429,7 +472,7 @@ const ResourcesTab = ({ data }) => {
 };
 
 const SocialTab = ({ data }) => (
-  <div className="glass" style={{ padding: '2rem' }}>
+  <div className="tab-content-glass">
     <h3 style={{ marginBottom: '2rem' }}>Social Media Preview Audit</h3>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
       <SocialCard platform="Google" icon={<FiGlobe size={18} color="#4285F4" />} title={data.url} desc="Experience the best web performance optimizer tool..." />
@@ -455,7 +498,7 @@ const SocialCard = ({ platform, icon, title, desc }) => (
 );
 
 const CompareTab = ({ data, history, onCompare }) => (
-  <div className="glass" style={{ padding: '2rem' }}>
+  <div className="tab-content-glass">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
       <h3 style={{ margin: 0 }}>Comparison Portal</h3>
       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{history?.length || 0} analyses available</span>
@@ -493,38 +536,43 @@ const CompareTab = ({ data, history, onCompare }) => (
 );
 
 const LockedTab = ({ category, setView }) => (
-  <div className="glass" style={{ padding: '4rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-    <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
-      <FiLock size={32} color="var(--accent-gold)" />
+  <div className="locked-tab-premium">
+    <div style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%)', padding: '1.5rem', borderRadius: '50%', marginBottom: '2rem', boxShadow: '0 0 40px rgba(245, 158, 11, 0.2)' }}>
+      <FiLock size={48} color="var(--accent-gold)" />
     </div>
-    <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Premium Feature</h3>
-    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '400px' }}>
-      {category.charAt(0).toUpperCase() + category.slice(1)} audits and advanced analytics are available to SpeedGenius Pro and Enterprise users.
+    <h3 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: '800' }}>Premium Feature Locked</h3>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', maxWidth: '450px', lineHeight: '1.6', fontSize: '1.05rem' }}>
+      Unlock full {category.charAt(0).toUpperCase() + category.slice(1)} audits, advanced analytics, and deeper insights by upgrading to SpeedGenius Pro.
     </p>
-    <button className="btn-primary" onClick={() => setView('pricing')}>Upgrade to Unlock</button>
+    <button className="btn-primary" onClick={() => setView('pricing')} style={{ padding: '1rem 2rem', fontSize: '1.1rem', borderRadius: '16px' }}>
+      <FiAward size={20} /> Upgrade to Pro
+    </button>
   </div>
 );
 
 const MetricCard = ({ icon, label, value, unit, desc }) => (
-  <div className="glass glass-hover" style={{ padding: '1.5rem' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.75rem', borderRadius: '12px' }}>
+  <div className="metric-card-premium">
+    <div className="metric-icon-bg">{React.cloneElement(icon, { size: 120 })}</div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '0.85rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
         {icon}
       </div>
-      <FiInfo size={16} color="var(--text-secondary)" />
+      <FiInfo size={18} color="var(--text-secondary)" style={{ opacity: 0.5 }} />
     </div>
-    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{label}</p>
-    <h4 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>
-      {value}<span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>{unit}</span>
+    <p style={{ position: 'relative', zIndex: 1, fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600', letterSpacing: '0.02em', textTransform: 'uppercase' }}>{label}</p>
+    <h4 className="text-shimmer" style={{ position: 'relative', zIndex: 1, fontSize: '2.5rem', fontWeight: '900', marginBottom: '0.75rem', letterSpacing: '-0.02em' }}>
+      {value}<span style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', fontWeight: '600', marginLeft: '0.25rem' }}>{unit}</span>
     </h4>
-    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{desc}</p>
+    <p style={{ position: 'relative', zIndex: 1, fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', lineHeight: '1.4' }}>{desc}</p>
   </div>
 );
 
 const AuditItem = ({ success, warning, title }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 0', borderBottom: '1px solid var(--border-glass)' }}>
-    {success ? <FiCheckCircle size={18} color="#10b981" /> : <FiAlertCircle size={18} color="#f59e0b" />}
-    <span style={{ fontSize: '0.95rem' }}>{title}</span>
+  <div className="audit-item-premium">
+    <div style={{ background: success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', padding: '0.5rem', borderRadius: '8px' }}>
+      {success ? <FiCheckCircle size={20} color="var(--accent-emerald)" /> : <FiAlertCircle size={20} color="var(--accent-gold)" />}
+    </div>
+    <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{title}</span>
   </div>
 );
 

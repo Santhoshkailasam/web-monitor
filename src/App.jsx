@@ -72,7 +72,7 @@ const App = () => {
   const fetchHistory = async () => {
     if (!user) return;
     try {
-      const response = await axios.get(`http://localhost:5000/api/history?userId=${user.uid}`);
+      const response = await axios.get(`http://localhost:5001/api/history?userId=${user.uid}`);
       setHistory(response.data);
     } catch (err) {
       console.error('Failed to fetch history', err);
@@ -85,7 +85,7 @@ const App = () => {
     setCompareReport(null);
     setProgress(0);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/analyze', { 
+      const { data } = await axios.post('http://localhost:5001/api/analyze', { 
         url, 
         device,
         userId: user?.uid 
@@ -99,7 +99,7 @@ const App = () => {
 
       const pollStatus = async () => {
         try {
-          const statusRes = await axios.get(`http://localhost:5000/api/status/${jobId}`);
+          const statusRes = await axios.get(`http://localhost:5001/api/status/${jobId}`);
           const { status, data: reportData, error } = statusRes.data;
           
           if (status === 'complete') {
