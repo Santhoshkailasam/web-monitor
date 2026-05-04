@@ -4,6 +4,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Hero from './components/Hero';
 import Dashboard from './components/Dashboard';
 import Suggestions from './components/Suggestions';
+import ChatCopilot from './components/ChatCopilot';
 import Pricing from './pages/Pricing';
 import Payment from './pages/Payment';
 import Settings from './pages/Settings';
@@ -95,7 +96,7 @@ const App = () => {
 
       // Polling function with retries
       let retryCount = 0;
-      const maxRetries = 8; 
+      const maxRetries = 30; // Increased to 90s for local LLM processing
 
       const pollStatus = async () => {
         try {
@@ -261,7 +262,7 @@ const App = () => {
 
                   {!compareReport && (
                     <>
-                      <Suggestions suggestions={report.suggestions} />
+                      <Suggestions suggestions={report.suggestions} url={report.url} />
                       <div className="container" style={{ textAlign: 'center', paddingBottom: '6rem' }}>
                         <button 
                           onClick={() => setReport(null)}
@@ -282,13 +283,7 @@ const App = () => {
 
       <Footer setView={setView} />
       
-      {/* Premium Floating Support */}
-      <motion.div 
-        whileHover={{ scale: 1.1 }}
-        style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--accent-blue)', color: 'white', padding: '1rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 10px 20px rgba(59, 130, 246, 0.4)', zIndex: 1000 }}
-      >
-        <FiStar size={24} />
-      </motion.div>
+      <ChatCopilot reportData={report} />
       <Toaster position="bottom-right" />
     </div>
   );
