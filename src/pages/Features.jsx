@@ -54,8 +54,8 @@ const Features = ({ onTry }) => {
     },
     { 
       title: 'Smart AI Code Doctor', 
-      desc: 'Your personal performance expert. Writes the fix for you.',
-      what: 'An intelligent AI that finds errors and gives you the exact code to fix them.',
+      desc: 'Real-time performance engine that generates custom code fixes for your site.',
+      what: 'An intelligent AI that analyzes your specific site code and provides tailored optimization snippets.',
       why: 'Knowing there is a problem is good, but having the solution is better.',
       how: 'Click the "Fix" button and the AI will generate a custom code snippet for your site.',
       icon: <FiCpu />,

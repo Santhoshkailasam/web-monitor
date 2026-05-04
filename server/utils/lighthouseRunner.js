@@ -1,6 +1,7 @@
 import lighthouse from 'lighthouse';
 import axios from 'axios';
 import puppeteer from 'puppeteer';
+import { generateExecutiveSummary, generateCodeFix, generateDependencyInsights } from './aiAssistant.js';
 
 export const runLighthouse = async (url, device = 'desktop') => {
   console.log(`🚀 Starting Lighthouse (${device}) for: ${url}`);
@@ -54,7 +55,7 @@ export const runLighthouse = async (url, device = 'desktop') => {
 
     const report = runnerResult.lhr;
 
-    return {
+    const baseData = {
       url,
       device,
       performance: Math.round(report.categories.performance.score * 100),
@@ -76,9 +77,19 @@ export const runLighthouse = async (url, device = 'desktop') => {
         images: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'image')?.size || 0) / 1024),
         total: Math.round((report.audits['resource-summary']?.details?.items?.find(i => i.resourceType === 'total')?.size || 0) / 1024),
       },
-
-      suggestions: getSuggestionsFromAudits(report.audits),
       security: await checkSecurityHeaders(url)
+    };
+
+    // Initial suggestions are now static; AI fixes will be on-demand
+    const suggestions = getSuggestionsFromAudits(report.audits);
+    const executiveSummary = await generateExecutiveSummary(baseData);
+    const dependencyInsights = await generateDependencyInsights(baseData);
+
+    return {
+      ...baseData,
+      suggestions,
+      executiveSummary,
+      dependencyInsights
     };
 
   } catch (error) {
@@ -109,7 +120,6 @@ const checkSecurityHeaders = async (url) => {
 };
 
 const getSuggestionsFromAudits = (audits) => {
-  const suggestions = [];
   const auditKeys = [
     'modern-image-formats',
     'efficient-animated-content',
@@ -119,29 +129,17 @@ const getSuggestionsFromAudits = (audits) => {
     'uses-optimized-images'
   ];
 
-  auditKeys.forEach(key => {
-    const audit = audits[key];
-    if (audit && audit.score !== null && audit.score < 0.9) {
-      let codeSnippet = audit.displayValue || 'Optimize this resource.';
+  return auditKeys
+    .map(key => audits[key])
+    .filter(audit => audit && audit.score !== null && audit.score < 0.9)
+    .map(audit => ({
+      impact: audit.score < 0.5 ? 'High' : 'Medium',
+      title: audit.title,
+      description: audit.description,
+      isAiGenerated: false
+    }));
+};
 
-      if (key === 'unused-javascript') {
-        codeSnippet = `// Remove unused JS or lazy load modules\nconst Component = React.lazy(() => import('./Component'));`;
-      }
-      if (key === 'render-blocking-resources') {
-        codeSnippet = `<!-- Use async/defer for scripts -->\n<script src="script.js" defer></script>`;
-      }
-      if (key === 'modern-image-formats') {
-        codeSnippet = `<!-- Use WebP images -->\n<img src="image.webp" alt="optimized image" />`;
-      }
-
-      suggestions.push({
-        impact: audit.score < 0.5 ? 'High' : 'Medium',
-        title: audit.title,
-        description: audit.description,
-        codeSnippet,
-      });
-    }
-  });
-
-  return suggestions;
+export const getAiFixForAudit = async (title, description, url) => {
+  return await generateCodeFix(title, description, url);
 };

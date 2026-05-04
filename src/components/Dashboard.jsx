@@ -4,16 +4,17 @@ import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
+import PredictiveModel from './PredictiveModel';
 import { 
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, 
   RadarChart, PolarGrid, PolarAngleAxis, Radar, Cell
 } from 'recharts';
 import { 
   FiClock, FiMousePointer, FiLayout, FiActivity, FiAlertCircle,
-  FiCheckCircle, FiInfo, FiCode, FiShield, FiEye,
+  FiCheckCircle, FiInfo, FiCode, FiShield, FiEye, FiCpu,
   FiSmartphone, FiMonitor, FiDownload, FiShare2, FiBarChart2, 
   FiLock, FiMessageSquare, FiFacebook, FiTwitter, FiLinkedin,
-  FiCopy, FiRepeat, FiGlobe, FiZap, FiAward, FiTrendingUp
+  FiCopy, FiRepeat, FiGlobe, FiZap, FiAward, FiTrendingUp, FiPackage
 } from 'react-icons/fi';
 
 const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
@@ -66,7 +67,7 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
         ['Accessibility', data.accessibility, '%'],
         ['Best Practices', data.bestPractices, '%'],
         ['LCP', data.metrics.lcp, 's'],
-        ['CLS', data.metrics.cls, ''],
+        ['CLS', parseFloat(Number(data.metrics.cls).toFixed(3)), ''],
         ['FCP', data.metrics.fcp, 's'],
         ['Speed Index', data.metrics.speedIndex, '']
       ];
@@ -109,6 +110,52 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
       className="container" 
       style={{ padding: '2rem 0 6rem' }}
     >
+      {/* AI Insights Section */}
+      {!isCompareView && data.executiveSummary && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-premium"
+          style={{ 
+            padding: '2.5rem', 
+            marginBottom: '3rem', 
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            boxShadow: '0 0 30px rgba(139, 92, 246, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ background: 'var(--accent-purple)', padding: '0.75rem', borderRadius: '12px', boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}>
+              <FiCpu size={24} color="white" className="animate-pulse" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>AI Performance Executive Summary</h3>
+              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Generated in real-time by SpeedGenius Intelligence</p>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+              "{data.executiveSummary}"
+            </p>
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-emerald)' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>Critical Bottleneck Identified</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>Custom Fixes Ready</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Premium Header Summary */}
       {!isCompareView && (
         <div style={{ marginBottom: '4rem' }}>
@@ -181,6 +228,61 @@ const Dashboard = ({ data, history, onCompare, isCompareView, setView }) => {
               {activeTab === 'compare' && (isPremium ? <CompareTab data={data} history={history} onCompare={onCompare} /> : <LockedTab category="compare" setView={setView} />)}
             </motion.div>
           </AnimatePresence>
+
+          {/* 🔮 Predictive Modeling */}
+          {!isCompareView && <PredictiveModel reportData={data} />}
+
+          {/* 📦 Dependency Auditor */}
+          {data.dependencyInsights && (() => {
+            // Parse if it's a string
+            let insights = data.dependencyInsights;
+            if (typeof insights === 'string') {
+              try {
+                const match = insights.match(/\{[\s\S]*\}/);
+                insights = match ? JSON.parse(match[0]) : { insights: [] };
+              } catch { insights = { insights: [] }; }
+            }
+            const items = insights?.insights || [];
+            if (items.length === 0) return null;
+
+            return (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass"
+                style={{ padding: '2rem', marginTop: '2rem' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '0.75rem', borderRadius: '12px' }}>
+                    <FiPackage size={24} color="var(--accent-purple)" />
+                  </div>
+                  <h3 style={{ fontSize: '1.5rem', margin: 0 }}>Smart Dependency Auditor</h3>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  {items.map((item, idx) => (
+                    <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-glass)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                        <div>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Found Library</p>
+                          <h4 style={{ fontSize: '1.1rem', color: 'var(--accent-rose)', margin: '0.25rem 0 0' }}>{item.library}</h4>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Est. Savings</p>
+                          <p style={{ fontSize: '1.1rem', color: 'var(--accent-emerald)', fontWeight: '700', margin: '0.25rem 0 0' }}>~{item.savings}</p>
+                        </div>
+                      </div>
+                      <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.85rem', borderRadius: '10px', marginBottom: '0.75rem' }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Recommended Alternative</p>
+                        <p style={{ fontWeight: '600', color: 'var(--accent-blue)', margin: 0 }}>{item.alternative}</p>
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>{item.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
 
         {/* Sidebar Health Radar */}
@@ -261,7 +363,7 @@ const PerformanceTab = ({ data }) => (
     <MetricCard 
       icon={<FiMousePointer size={22} color="var(--accent-emerald)" />}
       label="Cumulative Layout Shift"
-      value={data.metrics.cls}
+      value={parseFloat(Number(data.metrics.cls).toFixed(3))}
       unit=""
       desc="Visual stability of the page"
     />

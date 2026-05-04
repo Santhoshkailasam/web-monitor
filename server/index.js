@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { runLighthouse } from './utils/lighthouseRunner.js';
+import { runLighthouse, getAiFixForAudit } from './utils/lighthouseRunner.js';
+import { generateChatResponse, predictImpact } from './utils/aiAssistant.js';
 
 dotenv.config();
 
@@ -178,6 +179,45 @@ app.get('/api/history', async (req, res) => {
       error: 'Failed to fetch history',
       details: error.message
     });
+  }
+});
+
+// 🚀 GENERATE AI FIX ON-DEMAND
+app.post('/api/generate-fix', async (req, res) => {
+  try {
+    const { title, description, url } = req.body;
+    console.log(`🤖 On-demand AI fix requested for: ${title}`);
+    const fix = await getAiFixForAudit(title, description, url);
+    res.json(fix);
+  } catch (err) {
+    console.error('❌ AI Fix generation failed:', err);
+    res.status(500).json({ error: 'AI failed to generate fix' });
+  }
+});
+
+// 💬 AI CHAT COPILOT
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, reportData, history } = req.body;
+    console.log(`💬 Copilot question: ${message.substring(0, 50)}...`);
+    const response = await generateChatResponse(message, reportData, history);
+    res.json({ response });
+  } catch (err) {
+    console.error('❌ Chat failed:', err);
+    res.status(500).json({ error: 'Chat unavailable' });
+  }
+});
+
+// 🔮 PREDICTIVE MODELING
+app.post('/api/predict', async (req, res) => {
+  try {
+    const { reportData, changes } = req.body;
+    console.log(`🔮 Prediction requested for: ${changes.substring(0, 50)}...`);
+    const prediction = await predictImpact(reportData, changes);
+    res.json(prediction);
+  } catch (err) {
+    console.error('❌ Prediction failed:', err);
+    res.status(500).json({ error: 'Prediction unavailable' });
   }
 });
 
